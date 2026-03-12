@@ -1,84 +1,219 @@
 import React, { useState, useEffect, useRef } from "react";
 import QRCode from "qrcode";
 import PrescriptionForm from "./PrescriptionForm";
+import { X, FilePlus, QrCode, ChevronRight } from "lucide-react";
 
 function NewPrescriptionModal({ isOpen, onClose }) {
   const [showForm, setShowForm] = useState(false);
-  const [showQRCode, setShowQRCode] = useState(false); // State to control QR code visibility
-  const [qrCodeData, setQrCodeData] = useState(""); // Store the QR code data
-  const qrCodeCanvasRef = useRef(null); // Create a reference for the canvas
+  const [showQRCode, setShowQRCode] = useState(false);
+  const [qrCodeData, setQrCodeData] = useState("");
+  const qrCodeCanvasRef = useRef(null);
 
-  // Make sure this effect runs always, not conditionally
   useEffect(() => {
     if (qrCodeData && qrCodeCanvasRef.current) {
-      QRCode.toCanvas(qrCodeCanvasRef.current, qrCodeData, function (error) {
-        if (error) {
-          console.error("Error generating QR code:", error);
-        } else {
-          console.log("QR code generated successfully");
-        }
+      QRCode.toCanvas(qrCodeCanvasRef.current, qrCodeData, (error) => {
+        if (error) console.error("Error generating QR code:", error);
       });
     }
-  }, [qrCodeData]); // Runs whenever qrCodeData changes
+  }, [qrCodeData]);
 
   if (!isOpen) return null;
 
   const generateQRCode = () => {
-    // Generate a random prescription ID
-    const prescriptionId =
-      "prescription-" + Math.random().toString(36).substr(2, 9);
-
-    // You can customize the URL or data to pass in the QR code
+    const prescriptionId = "prescription-" + Math.random().toString(36).substr(2, 9);
     const formUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfHCYq-sVvprhYCAL1h0h56uIx9b8CD75K1adgCJnzLANfcsw/viewform?prescriptionId=${prescriptionId}`;
-
-    // Set the QR code data
     setQrCodeData(formUrl);
-    setShowQRCode(true); // Show QR code after generation
+    setShowQRCode(true);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(15,23,42,0.6)",
+        backdropFilter: "blur(4px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+        padding: "1rem",
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) { setShowForm(false); setShowQRCode(false); onClose(); } }}
+    >
+      <div
+        style={{
+          background: "white",
+          borderRadius: "1rem",
+          boxShadow: "0 24px 64px rgba(0,0,0,0.15)",
+          width: "100%",
+          maxWidth: showForm ? "56rem" : "28rem",
+          maxHeight: "92vh",
+          overflowY: "auto",
+          transition: "max-width 300ms ease",
+        }}
+      >
         {!showForm ? (
-          <div className="space-y-4 animate-fadeIn">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
-              Generate New Prescription
-            </h2>
-            <button
-              onClick={() => setShowForm(true)}
-              className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-                       transition-colors duration-200"
+          <>
+            {/* Header */}
+            <div
+              style={{
+                padding: "1.25rem 1.5rem",
+                borderBottom: "1px solid var(--color-med-slate-200)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
             >
-              Generate by Yourself
-            </button>
-            <button
-              onClick={generateQRCode} // On click, generate QR code
-              className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 
-                       transition-colors duration-200"
-            >
-              Generate by PA
-            </button>
-
-            {/* Display QR code if generated */}
-            {showQRCode && (
-              <div className="mt-4 text-center">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-                  Scan this QR Code to fill the form
-                </h3>
-                <div className="flex justify-center">
-                  <canvas ref={qrCodeCanvasRef}></canvas>
-                </div>
+              <div>
+                <h2 style={{ fontWeight: 700, fontSize: "1.125rem", color: "var(--color-med-slate-800)" }}>
+                  New Prescription
+                </h2>
+                <p style={{ fontSize: "0.8125rem", color: "var(--color-med-slate-500)", marginTop: "0.125rem" }}>
+                  Choose how to add your prescription
+                </p>
               </div>
-            )}
+              <button
+                onClick={() => { setShowQRCode(false); onClose(); }}
+                className="btn-icon"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-            <button
-              onClick={onClose}
-              className="mt-4 text-gray-600 dark:text-gray-400 hover:text-gray-800 
-                       dark:hover:text-gray-200"
+            {/* Options */}
+            <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              {/* Manual Entry */}
+              <button
+                onClick={() => setShowForm(true)}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1rem",
+                  padding: "1.125rem",
+                  borderRadius: "0.75rem",
+                  border: "1.5px solid var(--color-med-blue-200)",
+                  background: "linear-gradient(135deg, var(--color-med-blue-50), #eff6ff)",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  transition: "all 150ms",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--color-med-blue-400)"}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--color-med-blue-200)"}
+              >
+                <div
+                  style={{
+                    width: "2.75rem",
+                    height: "2.75rem",
+                    borderRadius: "0.625rem",
+                    background: "linear-gradient(135deg, var(--color-med-blue-500), var(--color-med-teal-500))",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <FilePlus size={18} color="white" />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--color-med-slate-800)" }}>
+                    Enter Manually
+                  </p>
+                  <p style={{ fontSize: "0.8125rem", color: "var(--color-med-slate-500)", marginTop: "0.125rem" }}>
+                    Fill in prescription details yourself
+                  </p>
+                </div>
+                <ChevronRight size={16} color="var(--color-med-slate-400)" />
+              </button>
+
+              {/* QR Code */}
+              <button
+                onClick={generateQRCode}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1rem",
+                  padding: "1.125rem",
+                  borderRadius: "0.75rem",
+                  border: "1.5px solid var(--color-med-teal-200)",
+                  background: "linear-gradient(135deg, var(--color-med-teal-50), #f0fdfa)",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  transition: "all 150ms",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--color-med-teal-400)"}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--color-med-teal-200)"}
+              >
+                <div
+                  style={{
+                    width: "2.75rem",
+                    height: "2.75rem",
+                    borderRadius: "0.625rem",
+                    background: "linear-gradient(135deg, var(--color-med-teal-500), #16a34a)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <QrCode size={18} color="white" />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontWeight: 700, fontSize: "0.9375rem", color: "var(--color-med-slate-800)" }}>
+                    Generate via PA
+                  </p>
+                  <p style={{ fontSize: "0.8125rem", color: "var(--color-med-slate-500)", marginTop: "0.125rem" }}>
+                    Scan QR code to fill via Google Form
+                  </p>
+                </div>
+                <ChevronRight size={16} color="var(--color-med-slate-400)" />
+              </button>
+
+              {/* QR Code Display */}
+              {showQRCode && (
+                <div
+                  style={{
+                    marginTop: "0.5rem",
+                    padding: "1.25rem",
+                    background: "var(--color-med-slate-50)",
+                    borderRadius: "0.75rem",
+                    border: "1px solid var(--color-med-slate-200)",
+                    textAlign: "center",
+                    animation: "fadeInUp 0.3s ease",
+                  }}
+                >
+                  <p style={{ fontWeight: 600, color: "var(--color-med-slate-700)", marginBottom: "0.75rem" }}>
+                    Scan to fill out the form
+                  </p>
+                  <div style={{ display: "flex", justifyContent: "center" }}>
+                    <canvas ref={qrCodeCanvasRef} style={{ borderRadius: "0.5rem" }} />
+                  </div>
+                  <p style={{ fontSize: "0.75rem", color: "var(--color-med-slate-400)", marginTop: "0.75rem" }}>
+                    The QR code links to the prescription form
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div
+              style={{
+                padding: "1rem 1.5rem",
+                borderTop: "1px solid var(--color-med-slate-200)",
+                textAlign: "right",
+              }}
             >
-              Close
-            </button>
-          </div>
+              <button
+                onClick={() => { setShowQRCode(false); onClose(); }}
+                className="btn-med-secondary"
+                style={{ fontSize: "0.875rem" }}
+              >
+                Cancel
+              </button>
+            </div>
+          </>
         ) : (
           <PrescriptionForm
             onClose={() => {

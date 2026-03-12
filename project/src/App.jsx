@@ -41,7 +41,7 @@ function App() {
   }
 
   return (
-    <div data-theme={theme}>
+    <div style={{ fontFamily: "Inter, sans-serif" }}>
       <Router>
         <Layout>
           <Routes>
